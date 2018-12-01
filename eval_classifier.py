@@ -21,6 +21,7 @@ from __future__ import print_function
 import math
 import tensorflow as tf
 from dataset import cloudgermam
+from deployment import model_deploy
 
 # from datasets import dataset_factory
 from nets import nets_factory
@@ -100,14 +101,22 @@ def main(_):
 
     tf.logging.set_verbosity(tf.logging.INFO)
     with tf.Graph().as_default():
+        deploy_config = model_deploy.DeploymentConfig(
+            num_clones=1,
+            clone_on_cpu=False,
+            replica_id=0,
+            num_replicas=1,
+            num_ps_tasks=0)
+
         tf_global_step = slim.get_or_create_global_step()
 
         ######################
         # Select the dataset #
         ######################
-        dataset = cloudgermam.get_split1(FLAGS.num_epochs, FLAGS.batch_size,
-                                        FLAGS.dataset_dir, FLAGS.dataset_split_name,
-                                         FLAGS.num_readers)
+        with tf.device(deploy_config.inputs_device()):
+            dataset = cloudgermam.get_split1(FLAGS.num_epochs, FLAGS.batch_size,
+                                            FLAGS.dataset_dir, FLAGS.dataset_split_name,
+                                             FLAGS.num_readers)
 
         ####################
         # Select the model #
@@ -120,11 +129,12 @@ def main(_):
         ##############################################################
         # Create a dataset provider that loads data from the dataset #
         ##############################################################
-        sen1, sen2, labels = dataset.get_next()
-        sen1.set_shape([FLAGS.batch_size, 32, 32, 8])
-        sen2.set_shape([FLAGS.batch_size, 32, 32, 10])
-        images = tf.concat((sen1, sen2), axis=3)
-        labels.set_shape([FLAGS.batch_size])
+        with tf.device(deploy_config.inputs_device()):
+            sen1, sen2, labels = dataset.get_next()
+            sen1.set_shape([FLAGS.batch_size, 32, 32, 8])
+            sen2.set_shape([FLAGS.batch_size, 32, 32, 10])
+            images = tf.concat((sen1, sen2), axis=3)
+            labels.set_shape([FLAGS.batch_size])
 
 
         #####################################
@@ -185,7 +195,7 @@ def main(_):
             checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
         else:
             checkpoint_path = FLAGS.checkpoint_path
-
+        # checkpoint_path = './Log/model.ckpt-204693'
         tf.logging.info('Evaluating %s' % checkpoint_path)
 
         slim.evaluation.evaluate_once(

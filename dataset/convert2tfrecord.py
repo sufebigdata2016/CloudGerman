@@ -8,7 +8,7 @@ import os
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('dataset_dir', './Data', '')
+tf.app.flags.DEFINE_string('dataset_dir', '../Data', '')
 
 LABELS_FILENAME = 'labels.txt'
 # The shards of output files

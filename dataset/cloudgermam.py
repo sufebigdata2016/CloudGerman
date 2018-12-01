@@ -77,7 +77,7 @@ def get_split1(num_epochs, batch_size, dataset_dir, split_name, num_readers=None
     dataset = dataset.map(_parse_function, num_parallel_calls=num_readers)  # Parse the record into tensors.
     dataset = dataset.repeat(num_epochs)  # Repeat the input indefinitely.
     dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(batch_size)
+    dataset = dataset.prefetch(1)
     iterator = dataset.make_one_shot_iterator()
     # iterator = dataset.make_initializable_iterator()
     # sess.run(iterator.initializer)

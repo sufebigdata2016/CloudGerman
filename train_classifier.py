@@ -199,19 +199,19 @@ tf.app.flags.DEFINE_string(
                                 'as `None`, then the model_name flag is used.')
 
 tf.app.flags.DEFINE_integer(
-    'batch_size', 32, 'The number of samples in each batch.')
+    'batch_size', 576, 'The number of samples in each batch.')
 
 tf.app.flags.DEFINE_integer(
     'train_image_size', None, 'Train image size')
 
-tf.app.flags.DEFINE_integer('max_number_of_steps', 300000,
+tf.app.flags.DEFINE_integer('max_number_of_steps', 3000000,
                             'The maximum number of training steps.')
 
 #####################
 # Fine-Tuning Flags #
 #####################
 tf.app.flags.DEFINE_integer(
-    'num_epochs', 30,
+    'num_epochs', 300,
     'Training epochs')
 
 
