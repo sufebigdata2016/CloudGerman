@@ -32,7 +32,7 @@ tf.app.flags.DEFINE_string(
     'master', '', 'The address of the TensorFlow master to use.')
 
 tf.app.flags.DEFINE_string(
-    'train_dir', './Log/',
+    'train_dir', './Log2/',
     'Directory where checkpoints and event logs are written to.')
 
 tf.app.flags.DEFINE_integer('num_clones', 1,
@@ -199,24 +199,24 @@ tf.app.flags.DEFINE_string(
                                 'as `None`, then the model_name flag is used.')
 
 tf.app.flags.DEFINE_integer(
-    'batch_size', 576, 'The number of samples in each batch.')
+    'batch_size', 72, 'The number of samples in each batch.')
 
 tf.app.flags.DEFINE_integer(
     'train_image_size', None, 'Train image size')
 
-tf.app.flags.DEFINE_integer('max_number_of_steps', 3000000,
+tf.app.flags.DEFINE_integer('max_number_of_steps', 5000000,
                             'The maximum number of training steps.')
 
 #####################
 # Fine-Tuning Flags #
 #####################
 tf.app.flags.DEFINE_integer(
-    'num_epochs', 300,
+    'num_epochs', 5000,
     'Training epochs')
 
 
 tf.app.flags.DEFINE_string(
-    'checkpoint_path', None,
+    'checkpoint_path', './Log2/resnet_v2_50.ckpt',
     'The path to a checkpoint from which to fine-tune.')
 
 tf.app.flags.DEFINE_string(
@@ -359,7 +359,7 @@ def _get_init_fn():
                 break
         else:
             variables_to_restore.append(var)
-
+    variables_to_restore = variables_to_restore[:-4]
     if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
         checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
     else:
@@ -414,10 +414,9 @@ def main(_):
         # Select the dataset #
         ######################
         with tf.device(deploy_config.inputs_device()):
-            dataset = cloudgermam.get_split1(FLAGS.num_epochs, FLAGS.batch_size,
-                                            FLAGS.dataset_dir, FLAGS.dataset_split_name,
+            dataset = cloudgermam.get_split1(FLAGS.dataset_dir, FLAGS.dataset_split_name,
+                                             FLAGS.batch_size,FLAGS.num_epochs,
                                              FLAGS.num_readers)
-
         ######################
         # Select the network #
         ######################
@@ -441,13 +440,13 @@ def main(_):
         with tf.device(deploy_config.inputs_device()):
             # sess.run(iter.initializer)
             sen1, sen2, labels = dataset.get_next()
-
             # train_image_size = FLAGS.train_image_size or network_fn.default_image_size
 
             # image = image_preprocessing_fn(image, train_image_size, train_image_size)
             sen1.set_shape([FLAGS.batch_size, 32, 32, 8])
             sen2.set_shape([FLAGS.batch_size, 32, 32, 10])
-            images = tf.concat((sen1, sen2), axis=3)
+            # images = tf.concat((sen1, sen2), axis=3)
+            images = sen2[:,:,:,:3]
             labels = slim.one_hot_encoding(
                 labels, dataset.num_classes - FLAGS.labels_offset)
             labels.set_shape([FLAGS.batch_size, dataset.num_classes - FLAGS.labels_offset])

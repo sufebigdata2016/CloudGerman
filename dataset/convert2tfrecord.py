@@ -48,23 +48,33 @@ def int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
-def to_tfexample(sen1, sen2, class_id, image_size):
-    return tf.train.Example(features=tf.train.Features(feature={
-        'sen1': float_feature(sen1),
-        'sen2': float_feature(sen2),
-        'label': int64_feature(class_id),
-        'image_size': int64_feature(image_size)
-    }))
+def to_tfexample(sen1, sen2, class_id, image_size, split_name):
+    if split_name == 'train' or split_name == 'validation':
+        feature = {
+            'sen1': float_feature(sen1),
+            'sen2': float_feature(sen2),
+            'label': int64_feature(class_id),
+            'image_size': int64_feature(image_size)
+        }
+    else:
+        feature = {
+            'sen1': float_feature(sen1),
+            'sen2': float_feature(sen2),
+            'image_size': int64_feature(image_size)
+        }
+    return tf.train.Example(features=tf.train.Features(feature=feature))
 
 
-def _add_to_tfrecord(filename, num_shards, tfrecord_filename, offset=0):
+
+def _add_to_tfrecord(filename, num_shards, tfrecord_filename, split_name, offset=0):
     data = h5py.File(filename, 'r')
 
     sen1 = data['sen1']
     sen2 = data['sen2']
     num_images = sen1.shape[0]
     num_per_shard = int(math.ceil(num_images / float(num_shards)))
-    labels = data['label']
+    if split_name == 'train' or split_name == 'validation':
+        labels = data['label']
 
     with tf.Graph().as_default():
 
@@ -78,17 +88,24 @@ def _add_to_tfrecord(filename, num_shards, tfrecord_filename, offset=0):
                     sys.stdout.write('\r>> Reading file [%s] image %d/%d' % (
                         filename, offset + j + 1, offset + num_images))
                     sys.stdout.flush()
-                    example = to_tfexample(sen1[j].reshape(-1),
-                                           sen2[j].reshape(-1),
-                                           np.argmax(labels[j]),
-                                           _IMAGE_SIZE)
+                    if split_name == 'train' or split_name == 'validation':
+                        example = to_tfexample(sen1[j].reshape(-1),
+                                               sen2[j].reshape(-1),
+                                               np.argmax(labels[j]),
+                                               _IMAGE_SIZE,
+                                               split_name)
+                    else:
+                        example = to_tfexample(sen1[j].reshape(-1),
+                                               sen2[j].reshape(-1),
+                                               _IMAGE_SIZE,
+                                               split_name)
                     tfrecord_writer.write(example.SerializeToString())
 
     return offset + num_images
 
 
-def write_label_file(labels_to_class_names, dataset_dir,
-                     filename):
+
+def write_label_file(labels_to_class_names, dataset_dir, filename):
     labels_filename = os.path.join(dataset_dir, filename)
     with tf.gfile.Open(labels_filename, 'w') as f:
         for label in labels_to_class_names:
@@ -102,18 +119,32 @@ def main(_):
 
     training_filename = '%s'.join(['%s/CloudGerman_%s_' % (FLAGS.dataset_dir, 'train'), '.tfrecord'])
     validation_filename = '%s'.join(['%s/CloudGerman_%s_' % (FLAGS.dataset_dir, 'validation'), '.tfrecord'])
+    round1_test_filename = '%s'.join(['%s/round1_%s_' % (FLAGS.dataset_dir, 'test'), '.tfrecord'])
     source_training_filename = '%s/training.h5' % FLAGS.dataset_dir
     source_validation_filename = '%s/validation.h5' % FLAGS.dataset_dir
+    source_round1_test_filename = '%s/round1_test_a_20181109.h5' % FLAGS.dataset_dir
 
-    if tf.gfile.Exists(training_filename % '0000') or tf.gfile.Exists(validation_filename % '0000'):
+    if tf.gfile.Exists(training_filename % '0000'):
         print('Dataset files already exist. Exiting without re-creating them.')
         return
 
     # First, process the training data:
-    _add_to_tfrecord(source_training_filename, _NUM_SHARDS, training_filename)
+    _add_to_tfrecord(source_training_filename,
+                     num_shards=_NUM_SHARDS,
+                     tfrecord_filename=training_filename,
+                     split_name='train')
 
     # Next, process the validation data:
-    _add_to_tfrecord(source_validation_filename, 1, validation_filename)
+    _add_to_tfrecord(source_validation_filename,
+                     num_shards=1,
+                     tfrecord_filename=validation_filename,
+                     split_name='validation')
+
+    # Next, process the round1_test data:
+    _add_to_tfrecord(source_round1_test_filename,
+                     num_shards=1,
+                     tfrecord_filename=round1_test_filename,
+                     split_name='test')
 
     # Finally, write the labels file:
     labels_to_class_names = dict(zip(range(len(_CLASS_NAMES)), _CLASS_NAMES))

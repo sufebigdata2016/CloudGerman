@@ -44,12 +44,12 @@ tf.app.flags.DEFINE_string(
     'master', '', 'The address of the TensorFlow master to use.')
 
 tf.app.flags.DEFINE_string(
-    'checkpoint_path', './Log/',
+    'checkpoint_path', './Log2/',
     'The directory where the model was written to or an absolute path to a '
     'checkpoint file.')
 
 tf.app.flags.DEFINE_string(
-    'eval_dir', './Log/', 'Directory where the results are saved to.')
+    'eval_dir', './Log2/', 'Directory where the results are saved to.')
 
 tf.app.flags.DEFINE_integer(
     'num_preprocessing_threads', 4,
@@ -114,8 +114,8 @@ def main(_):
         # Select the dataset #
         ######################
         with tf.device(deploy_config.inputs_device()):
-            dataset = cloudgermam.get_split1(FLAGS.num_epochs, FLAGS.batch_size,
-                                            FLAGS.dataset_dir, FLAGS.dataset_split_name,
+            dataset = cloudgermam.get_split1(FLAGS.dataset_dir, FLAGS.dataset_split_name,
+                                             FLAGS.batch_size,FLAGS.num_epochs,
                                              FLAGS.num_readers)
 
         ####################
@@ -133,7 +133,8 @@ def main(_):
             sen1, sen2, labels = dataset.get_next()
             sen1.set_shape([FLAGS.batch_size, 32, 32, 8])
             sen2.set_shape([FLAGS.batch_size, 32, 32, 10])
-            images = tf.concat((sen1, sen2), axis=3)
+            images = sen2[:,:,:,:3]
+            # images = tf.concat((sen1, sen2), axis=3)
             labels.set_shape([FLAGS.batch_size])
 
 
