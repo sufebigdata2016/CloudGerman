@@ -78,8 +78,8 @@ def get_split1(dataset_dir, split_name, batch_size=1, num_epochs=1, num_readers=
         dataset = tf.data.TFRecordDataset(filenames, num_parallel_reads=num_readers)
         iterator = dataset.shuffle(100 * batch_size) \
             .map(_parse_function, num_parallel_calls=num_readers) \
-            .batch(batch_size) \
             .repeat(num_epochs) \
+            .batch(batch_size) \
             .prefetch(1) \
             .make_one_shot_iterator()
         iterator.num_classes = _NUM_CLASSES
@@ -88,7 +88,7 @@ def get_split1(dataset_dir, split_name, batch_size=1, num_epochs=1, num_readers=
     else:
         dataset = tf.data.TFRecordDataset(filenames, num_parallel_reads=num_readers)
         iterator = dataset.map(_parse_function, num_parallel_calls=num_readers) \
-            .batch(1) \
+            .batch(batch_size) \
             .prefetch(1) \
             .make_one_shot_iterator()
         iterator.num_classes = _NUM_CLASSES

@@ -34,7 +34,7 @@ tf.app.flags.DEFINE_integer(
     'num_epochs', 1, 'validation epochs')
 
 tf.app.flags.DEFINE_integer(
-    'batch_size', 120, 'The number of samples in each batch.')
+    'batch_size', 72, 'The number of samples in each batch.')
 
 tf.app.flags.DEFINE_integer(
     'max_num_batches', None,
@@ -136,8 +136,6 @@ def main(_):
             images = sen2[:,:,:,:3]
             # images = tf.concat((sen1, sen2), axis=3)
             labels.set_shape([FLAGS.batch_size])
-
-
         #####################################
         # Select the preprocessing function #
         #####################################
@@ -209,4 +207,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-    tf.app.run()
+     tf.app.run()

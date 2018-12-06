@@ -215,12 +215,13 @@ tf.app.flags.DEFINE_integer(
     'Training epochs')
 
 
+
 tf.app.flags.DEFINE_string(
-    'checkpoint_path', './Log2/resnet_v2_50.ckpt',
+    'checkpoint_path', './Log2/resnet_v2_50/resnet_v2_50.ckpt',
     'The path to a checkpoint from which to fine-tune.')
 
 tf.app.flags.DEFINE_string(
-    'checkpoint_exclude_scopes', None,
+    'checkpoint_exclude_scopes', 'resnet_v2_50/logits',
     'Comma-separated list of scopes of variables to exclude when restoring '
     'from a checkpoint.')
 
@@ -359,7 +360,7 @@ def _get_init_fn():
                 break
         else:
             variables_to_restore.append(var)
-    variables_to_restore = variables_to_restore[:-4]
+
     if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
         checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
     else:
@@ -415,8 +416,8 @@ def main(_):
         ######################
         with tf.device(deploy_config.inputs_device()):
             dataset = cloudgermam.get_split1(FLAGS.dataset_dir, FLAGS.dataset_split_name,
-                                             FLAGS.batch_size,FLAGS.num_epochs,
-                                             FLAGS.num_readers)
+                                             FLAGS.batch_size,num_epochs=FLAGS.num_epochs,
+                                             num_readers=FLAGS.num_readers)
         ######################
         # Select the network #
         ######################
