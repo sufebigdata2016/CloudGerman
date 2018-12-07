@@ -3,6 +3,7 @@ import tensorflow as tf
 from dataset import cloudgermam
 from nets import nets_factory
 from deployment import model_deploy
+from preprocessing import preprocessing_factory
 
 
 tf.app.flags.DEFINE_string(
@@ -20,11 +21,18 @@ tf.app.flags.DEFINE_string(
     'model_name', 'resnet_v2_50', 'The name of the architecture to evaluate.')
 
 tf.app.flags.DEFINE_string(
-    'submit_dir', './submit/submit0.csv', 'submit dir')
+    'submit_dir', './submit/submit2.csv', 'submit dir')
 
 tf.app.flags.DEFINE_integer(
     'num_readers', 12,
     'The number of parallel readers that read data from the dataset.')
+
+tf.app.flags.DEFINE_string(
+    'preprocessing_name', None, 'The name of the preprocessing to use. If left '
+                                'as `None`, then the model_name flag is used.')
+
+tf.app.flags.DEFINE_integer(
+    'test_image_size', 32, 'Test image size')
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -51,6 +59,16 @@ def main(_):
     sen2 = dataset.get_next()[1]
     # image = tf.concat((sen1, sen2), axis=3)
     images = sen2[:, :, :, :3]
+    #####################################
+    # Select the preprocessing function #
+    #####################################
+    preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
+    image_preprocessing_fn = preprocessing_factory.get_preprocessing(
+        preprocessing_name,
+        is_training=False)
+    test_image_size = FLAGS.test_image_size or network_fn.default_image_size
+    images = image_preprocessing_fn(images, test_image_size, test_image_size)
+
     logits, _ = network_fn(images)
     logits = tf.argmax(logits, 1)
     logits = tf.one_hot(logits, 17)

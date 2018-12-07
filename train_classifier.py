@@ -23,7 +23,7 @@ import tensorflow as tf
 # from datasets import dataset_factory
 from deployment import model_deploy
 from nets import nets_factory
-# from preprocessing import preprocessing_factory
+from preprocessing import preprocessing_factory
 from dataset import cloudgermam
 
 slim = tf.contrib.slim
@@ -32,7 +32,7 @@ tf.app.flags.DEFINE_string(
     'master', '', 'The address of the TensorFlow master to use.')
 
 tf.app.flags.DEFINE_string(
-    'train_dir', './Log2/',
+    'train_dir', './Log3/',
     'Directory where checkpoints and event logs are written to.')
 
 tf.app.flags.DEFINE_integer('num_clones', 1,
@@ -52,7 +52,7 @@ tf.app.flags.DEFINE_integer(
     'are handled locally by the worker.')
 
 tf.app.flags.DEFINE_integer(
-    'num_readers', 12,
+    'num_readers', 5,
     'The number of parallel readers that read data from the dataset.')
 
 tf.app.flags.DEFINE_integer(
@@ -202,7 +202,7 @@ tf.app.flags.DEFINE_integer(
     'batch_size', 72, 'The number of samples in each batch.')
 
 tf.app.flags.DEFINE_integer(
-    'train_image_size', None, 'Train image size')
+    'train_image_size', 32, 'Train image size')
 
 tf.app.flags.DEFINE_integer('max_number_of_steps', 5000000,
                             'The maximum number of training steps.')
@@ -213,8 +213,6 @@ tf.app.flags.DEFINE_integer('max_number_of_steps', 5000000,
 tf.app.flags.DEFINE_integer(
     'num_epochs', 5000,
     'Training epochs')
-
-
 
 tf.app.flags.DEFINE_string(
     'checkpoint_path', './Log2/resnet_v2_50/resnet_v2_50.ckpt',
@@ -238,6 +236,7 @@ FLAGS = tf.app.flags.FLAGS
 
 session_config = tf.ConfigProto()
 session_config.gpu_options.allow_growth = True
+
 
 def _configure_learning_rate(num_samples_per_epoch, global_step):
     """Configures the learning rate.
@@ -416,7 +415,7 @@ def main(_):
         ######################
         with tf.device(deploy_config.inputs_device()):
             dataset = cloudgermam.get_split1(FLAGS.dataset_dir, FLAGS.dataset_split_name,
-                                             FLAGS.batch_size,num_epochs=FLAGS.num_epochs,
+                                             FLAGS.batch_size, num_epochs=FLAGS.num_epochs,
                                              num_readers=FLAGS.num_readers)
         ######################
         # Select the network #
@@ -430,10 +429,10 @@ def main(_):
         #####################################
         # Select the preprocessing function #
         #####################################
-        # preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
-        # image_preprocessing_fn = preprocessing_factory.get_preprocessing(
-        #     preprocessing_name,
-        #     is_training=True)
+        preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
+        image_preprocessing_fn = preprocessing_factory.get_preprocessing(
+            preprocessing_name,
+            is_training=True)
 
         ##############################################################
         # Create a dataset provider that loads data from the dataset #
@@ -441,18 +440,16 @@ def main(_):
         with tf.device(deploy_config.inputs_device()):
             # sess.run(iter.initializer)
             sen1, sen2, labels = dataset.get_next()
-            # train_image_size = FLAGS.train_image_size or network_fn.default_image_size
+            train_image_size = FLAGS.train_image_size or network_fn.default_image_size
 
-            # image = image_preprocessing_fn(image, train_image_size, train_image_size)
             sen1.set_shape([FLAGS.batch_size, 32, 32, 8])
             sen2.set_shape([FLAGS.batch_size, 32, 32, 10])
             # images = tf.concat((sen1, sen2), axis=3)
-            images = sen2[:,:,:,:3]
+            images = sen2[:, :, :, :3]
+            images = image_preprocessing_fn(images, train_image_size, train_image_size)
             labels = slim.one_hot_encoding(
                 labels, dataset.num_classes - FLAGS.labels_offset)
             labels.set_shape([FLAGS.batch_size, dataset.num_classes - FLAGS.labels_offset])
-
-
 
         ####################
         # Define the model #

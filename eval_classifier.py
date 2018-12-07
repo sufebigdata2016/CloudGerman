@@ -26,7 +26,7 @@ from deployment import model_deploy
 # from datasets import dataset_factory
 from nets import nets_factory
 
-# from preprocessing import preprocessing_factory
+from preprocessing import preprocessing_factory
 
 slim = tf.contrib.slim
 
@@ -44,12 +44,12 @@ tf.app.flags.DEFINE_string(
     'master', '', 'The address of the TensorFlow master to use.')
 
 tf.app.flags.DEFINE_string(
-    'checkpoint_path', './Log2/',
+    'checkpoint_path', './Log3/',
     'The directory where the model was written to or an absolute path to a '
     'checkpoint file.')
 
 tf.app.flags.DEFINE_string(
-    'eval_dir', './Log2/', 'Directory where the results are saved to.')
+    'eval_dir', './Log3/', 'Directory where the results are saved to.')
 
 tf.app.flags.DEFINE_integer(
     'num_preprocessing_threads', 4,
@@ -83,13 +83,13 @@ tf.app.flags.DEFINE_float(
     'If left as None, then moving averages are not used.')
 
 tf.app.flags.DEFINE_integer(
-    'eval_image_size', None, 'Eval image size')
+    'eval_image_size', 32, 'Eval image size')
 
 tf.app.flags.DEFINE_bool(
     'quantize', False, 'whether to use quantized graph or not.')
 
 tf.app.flags.DEFINE_integer(
-    'num_readers', 12,
+    'num_readers', 1,
     'The number of parallel readers that read data from the dataset.')
 
 FLAGS = tf.app.flags.FLAGS
@@ -139,14 +139,14 @@ def main(_):
         #####################################
         # Select the preprocessing function #
         #####################################
-        # preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
-        # image_preprocessing_fn = preprocessing_factory.get_preprocessing(
-        #     preprocessing_name,
-        #     is_training=False)
+        preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
+        image_preprocessing_fn = preprocessing_factory.get_preprocessing(
+            preprocessing_name,
+            is_training=False)
 
-        # eval_image_size = FLAGS.eval_image_size or network_fn.default_image_size
+        eval_image_size = FLAGS.eval_image_size or network_fn.default_image_size
 
-        # image = image_preprocessing_fn(image, eval_image_size, eval_image_size)
+        images = image_preprocessing_fn(images, eval_image_size, eval_image_size)
 
 
         ####################
