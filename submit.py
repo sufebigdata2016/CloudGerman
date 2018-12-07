@@ -6,7 +6,7 @@ from deployment import model_deploy
 
 
 tf.app.flags.DEFINE_string(
-    'checkpoint_path', './Log1/',
+    'checkpoint_path', './Log2/',
     'The directory where the model was written to or an absolute path to a '
     'checkpoint file.')
 
@@ -48,9 +48,10 @@ def main(_):
                                              num_classes=17,
                                              is_training=False)
 
-    sen1, sen2 = dataset.get_next()[:2]
-    image = tf.concat((sen1, sen2), axis=3)
-    logits, _ = network_fn(image)
+    sen2 = dataset.get_next()[1]
+    # image = tf.concat((sen1, sen2), axis=3)
+    images = sen2[:, :, :, :3]
+    logits, _ = network_fn(images)
     logits = tf.argmax(logits, 1)
     logits = tf.one_hot(logits, 17)
 
