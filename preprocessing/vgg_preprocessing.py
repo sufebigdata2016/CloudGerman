@@ -41,7 +41,7 @@ _G_MEAN, _G_STD = 0.109277463637, 0.0477782627524
 _B_MEAN, _B_STD = 0.101085520327, 0.0663661670637
 
 _RESIZE_SIDE_MIN = 32
-_RESIZE_SIDE_MAX = 256
+_RESIZE_SIDE_MAX = 64
 
 
 def _crop(image, offset_height, offset_width, crop_height, crop_width):
