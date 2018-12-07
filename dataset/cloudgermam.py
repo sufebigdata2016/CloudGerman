@@ -5,6 +5,7 @@ import glob
 
 SPLITS_TO_SIZES = {'train': 352366, 'validation': 24119, 'round1_test': 4838}
 
+SEED = 7
 _NUM_CLASSES = 17
 
 _SPLIT_NAME_DICT = {'train': 'training.h5', 'validation': 'validation.h5'}
@@ -76,21 +77,19 @@ def get_split1(dataset_dir, split_name, batch_size=1, num_epochs=1, num_readers=
 
     if split_name == 'train':
         dataset = tf.data.TFRecordDataset(filenames, num_parallel_reads=num_readers)
-        iterator = dataset.shuffle(100 * batch_size) \
+        iterator = dataset.shuffle(SPLITS_TO_SIZES["train"], seed=SEED) \
             .map(_parse_function, num_parallel_calls=num_readers) \
             .repeat(num_epochs) \
             .batch(batch_size) \
             .prefetch(1) \
-            .make_one_shot_iterator()
-        iterator.num_classes = _NUM_CLASSES
-        iterator.num_samples = SPLITS_TO_SIZES[split_name]
-        return iterator
+            .make_one_shot_iterator()  # todo
     else:
         dataset = tf.data.TFRecordDataset(filenames, num_parallel_reads=num_readers)
         iterator = dataset.map(_parse_function, num_parallel_calls=num_readers) \
             .batch(batch_size) \
             .prefetch(1) \
             .make_one_shot_iterator()
-        iterator.num_classes = _NUM_CLASSES
-        iterator.num_samples = SPLITS_TO_SIZES[split_name]
-        return iterator
+
+    iterator.num_classes = _NUM_CLASSES
+    iterator.num_samples = SPLITS_TO_SIZES[split_name]
+    return iterator

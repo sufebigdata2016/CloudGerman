@@ -29,6 +29,7 @@ _CLASS_NAMES = [
     'Large_low_rise',
     'Sparsely_built',
     'Heavy_industry',
+    'Dense trees',
     'Scattered_trees',
     'Bush_and_scrub',
     'Low_plants',
@@ -48,7 +49,7 @@ def int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
-def to_tfexample(sen1, sen2, class_id, image_size, split_name):
+def to_tfexample(sen1, sen2, image_size, split_name, class_id=None):
     if split_name == 'train' or split_name == 'validation':
         feature = {
             'sen1': float_feature(sen1),
@@ -63,7 +64,6 @@ def to_tfexample(sen1, sen2, class_id, image_size, split_name):
             'image_size': int64_feature(image_size)
         }
     return tf.train.Example(features=tf.train.Features(feature=feature))
-
 
 
 def _add_to_tfrecord(filename, num_shards, tfrecord_filename, split_name, offset=0):
@@ -86,14 +86,14 @@ def _add_to_tfrecord(filename, num_shards, tfrecord_filename, split_name, offset
                     tfrecord_filename % ('0' * (4 - len(str(shard_id))) + str(shard_id))) as tfrecord_writer:
                 for j in range(start_ndx, end_ndx):
                     sys.stdout.write('\r>> Reading file [%s] image %d/%d' % (
-                        filename, offset + j + 1, offset + num_images))
+                        filename, offset + j + 1, offset + num_images))  # \r：光标移到本行最左边
                     sys.stdout.flush()
                     if split_name == 'train' or split_name == 'validation':
                         example = to_tfexample(sen1[j].reshape(-1),
                                                sen2[j].reshape(-1),
-                                               np.argmax(labels[j]),
                                                _IMAGE_SIZE,
-                                               split_name)
+                                               split_name,
+                                               np.argmax(labels[j]))  # reshape(-1): 相当于ravel()
                     else:
                         example = to_tfexample(sen1[j].reshape(-1),
                                                sen2[j].reshape(-1),
