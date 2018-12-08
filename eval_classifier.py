@@ -146,7 +146,7 @@ def main(_):
 
         eval_image_size = FLAGS.eval_image_size or network_fn.default_image_size
 
-        images = image_preprocessing_fn(images, eval_image_size, eval_image_size)
+        # images = image_preprocessing_fn(images, eval_image_size, eval_image_size)
 
 
         ####################

@@ -77,8 +77,7 @@ def get_split1(dataset_dir, split_name, batch_size=1, num_epochs=1, num_readers=
 
     if split_name == 'train':
         dataset = tf.data.TFRecordDataset(filenames, num_parallel_reads=num_readers)
-        iterator = dataset.shuffle(500*batch_size, seed=SEED) \
-            .map(_parse_function, num_parallel_calls=num_readers) \
+        iterator = dataset.map(_parse_function, num_parallel_calls=num_readers) \
             .repeat(num_epochs) \
             .batch(batch_size) \
             .prefetch(1) \

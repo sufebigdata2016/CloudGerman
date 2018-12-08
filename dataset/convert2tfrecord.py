@@ -1,3 +1,4 @@
+#coding=utf8
 import sys
 import h5py
 
@@ -81,17 +82,6 @@ def preprocess(data, sen):
 
     return data
 
-def sen2_preprocess(data):
-    import copy
-    data = copy.deepcopy(data)
-    chan_num = data.shape[-1]
-    for i in range(chan_num):
-        lo_thresh, hi_thresh = S2_THRESHS[i]
-        mean, std = S2_MEANS_STDS[i]
-        data[:, :, i][data[:,:,i] > hi_thresh] = hi_thresh
-        data[:, :, i][data[:,:,i] < lo_thresh] = hi_thresh
-        data[:, :, i] = (data[:,:,i] - mean) / std
-    return data
 
 def float_feature(value):
     return tf.train.Feature(float_list=tf.train.FloatList(value=value))
@@ -139,12 +129,12 @@ def _add_to_tfrecord(filename, num_shards, tfrecord_filename, split_name, offset
             with tf.python_io.TFRecordWriter(
                     tfrecord_filename % ('0' * (4 - len(str(shard_id))) + str(shard_id))) as tfrecord_writer:
                 for j in range(start_ndx, end_ndx):
-                    if split_name == 'train':
-                        j = _SHUFFLE_MAP[j]
                     sys.stdout.write('\r>> Reading file [%s] image %d/%d' % (
                         filename, offset + j + 1, offset + num_images))  # \r：光标移到本行最左边
                     sys.stdout.flush()
 
+                    if split_name == 'train':
+                        j = _SHUFFLE_MAP[j]
                     if split_name == 'train' or split_name == 'validation':
                         example = to_tfexample(preprocess(sen1[j], "sen1").reshape(-1),
                                                preprocess(sen2[j], "sen2").reshape(-1),

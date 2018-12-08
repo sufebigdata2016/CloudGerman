@@ -446,7 +446,7 @@ def main(_):
             sen2.set_shape([FLAGS.batch_size, 32, 32, 10])
             # images = tf.concat((sen1, sen2), axis=3)
             images = sen2[:, :, :, :3]
-            images = image_preprocessing_fn(images, train_image_size, train_image_size)
+            # images = image_preprocessing_fn(images, train_image_size, train_image_size)
             labels = slim.one_hot_encoding(
                 labels, dataset.num_classes - FLAGS.labels_offset)
             labels.set_shape([FLAGS.batch_size, dataset.num_classes - FLAGS.labels_offset])

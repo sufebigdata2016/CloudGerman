@@ -67,7 +67,7 @@ def main(_):
         preprocessing_name,
         is_training=False)
     test_image_size = FLAGS.test_image_size or network_fn.default_image_size
-    images = image_preprocessing_fn(images, test_image_size, test_image_size)
+    # images = image_preprocessing_fn(images, test_image_size, test_image_size)
 
     logits, _ = network_fn(images)
     logits = tf.argmax(logits, 1)
