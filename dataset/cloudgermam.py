@@ -87,7 +87,7 @@ def get_split1(dataset_dir, split_name, batch_size=1, num_epochs=1, num_readers=
         iterator = dataset.map(_parse_function, num_parallel_calls=num_readers) \
             .batch(batch_size) \
             .prefetch(1) \
-            .make_one_shot_iterator()
+            .make_initializable_iterator()
 
     iterator.num_classes = _NUM_CLASSES
     iterator.num_samples = SPLITS_TO_SIZES[split_name]
