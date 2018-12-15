@@ -8,6 +8,5 @@
 |resnet_v2_50|sen2|-|0.0802|0.6077|0.9336|0.654|submit1_hhq|pretrain
 |resnet_v2_50|sen2|-|-|-|-|-|submit3_hhq|no pretrain
 |resnet_v2_50|sen2|-|0.5921|0.6403|0.9348|0.661|submit2_hhq|pretrain,add_loss,weight=0.5
-
 |resnet_v2_50|rgb|crop|0.2~0.3|0.4|0.85|-|
 |resnet_v2_50|rgb|stand|-|-|-|-|
